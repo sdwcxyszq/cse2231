@@ -1,0 +1,487 @@
+import components.binarytree.BinaryTree;
+import components.binarytree.BinaryTree1;
+import components.map.Map;
+import components.program.Program;
+import components.sequence.Sequence;
+import components.set.Set;
+import components.set.Set1L;
+import components.simplewriter.SimpleWriter;
+import components.statement.Statement;
+import components.statement.StatementKernel.Condition;
+import components.tree.Tree;
+
+/**
+ * Simple HelloWorld program (clear of Checkstyle and FindBugs warnings).
+ *
+ * @author P. Bucci
+ */
+public final class HelloWorld {
+
+    /**
+     * Default constructor--private to prevent instantiation.
+     */
+    private HelloWorld() {
+        // no code needed here
+    }
+
+    /**
+     * Returns the size of the given {@code BinaryTree<T>}.
+     *
+     * @param <T>
+     *            the type of the {@code BinaryTree} node labels
+     * @param t
+     *            the {@code BinaryTree} whose size to return
+     * @return the size of the given {@code BinaryTree}
+     * @ensures size = |t|
+     */
+    public static <T> int size(BinaryTree<T> t) {
+        int num = 0;
+        if (t.height() > 0) {
+            BinaryTree<T> left = t.newInstance();
+            BinaryTree<T> right = t.newInstance();
+            T root = t.disassemble(left, right);
+            num += 1 + size(left) + size(right);
+
+        }
+        return num;
+    }
+
+    /**
+     * Returns the size of the given {@code Tree<T>}.
+     *
+     * @param <T>
+     *            the type of the {@code Tree} node labels
+     * @param t
+     *            the {@code Tree} whose size to return
+     * @return the size of the given {@code Tree}
+     * @ensures size = |t|
+     */
+    public static <T> int size1(Tree<T> t) {
+        int num = 0;
+        if (t.size() > 0) {
+            num++;
+            Sequence<Tree<T>> children = t.newSequenceOfTree();
+            T root = t.disassemble(children);
+            for (int index = 0; index < children.length(); index++) {
+                num += size(children.entry(index));
+            }
+            t.assemble(root, children);
+        }
+        return size;
+    }
+
+    /**
+     * Returns the size of the given {@code Tree<T>}.
+     *
+     * @param <T>
+     *            the type of the {@code Tree} node labels
+     * @param t
+     *            the {@code Tree} whose size to return
+     * @return the size of the given {@code Tree}
+     * @ensures size = |t|
+     */
+    public static <T> int size2(Tree<T> t) {
+        int num = 0;
+        for (T temp : t) {
+            num++;
+        }
+        return num;
+    }
+
+    /**
+     * Reports the number of calls to primitive instructions (move, turnleft,
+     * turnright, infect, skip) in a given {@code Statement}.
+     *
+     * @param s
+     *            the {@code Statement}
+     * @return the number of calls to primitive instructions in {@code s}
+     * @ensures <pre>
+     * countOfPrimitiveCalls =
+     *  [number of calls to primitive instructions in s]
+     * </pre>
+     */
+    public static int countOfPrimitiveCalls(Statement s) {
+        int count = 0;
+        switch (s.kind()) {
+            case BLOCK: {
+                /*
+                 * Add up the number of calls to primitive instructions in each
+                 * nested statement in the BLOCK.
+                 */
+                count++;
+                for (int index = 0; index < s.lengthOfBlock(); index++) {
+                    Statement temp = s.removeFromBlock(index);
+                    count += countOfPrimitiveCalls(temp);
+                    s.addToBlock(index, temp);
+                }
+                break;
+            }
+            case IF: {
+                /*
+                 * Find the number of calls to primitive instructions in the
+                 * body of the IF.
+                 */
+                Statement sub = s.newInstance();
+                Condition temp = s.disassembleIf(sub);
+                count += countOfPrimitiveCalls(sub);
+                s.assembleIf(temp, sub);
+
+                break;
+            }
+            case IF_ELSE: {
+                /*
+                 * Add up the number of calls to primitive instructions in the
+                 * "then" and "else" bodies of the IF_ELSE.
+                 */
+                Statement IF = s.newInstance();
+                Statement Else = s.newInstance();
+                Condition ifElse = s.disassembleIfElse(IF, Else);
+                count += countOfPrimitiveCalls(IF)
+                        + countOfPrimitiveCalls(Else);
+                s.assembleIfElse(ifElse, IF, Else);
+
+                break;
+            }
+            case WHILE: {
+                /*
+                 * Find the number of calls to primitive instructions in the
+                 * body of the WHILE.
+                 */
+                Statement temp = s.newInstance();
+                Condition While = s.disassembleWhile(temp);
+                count += countOfPrimitiveCalls(temp);
+                s.assembleWhile(While, temp);
+
+                break;
+            }
+            case CALL: {
+                /*
+                 * This is a leaf: the count can only be 1 or 0. Determine
+                 * whether this is a call to a primitive instruction or not.
+                 */
+                String label = s.disassembleCall();
+                if (label.equals("turnright") || label.equals("turnright")
+                        || label.equals("move") || label.equals("skip")
+                        || label.equals("infect")) {
+                    count++;
+                }
+                s.assembleCall(label);
+            }
+            default: {
+                // this will never happen...can you explain why?
+                break;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Refactors the given {@code Statement} so that every IF_ELSE statement
+     * with a negated condition (NEXT_IS_NOT_EMPTY, NEXT_IS_NOT_ENEMY,
+     * NEXT_IS_NOT_FRIEND, NEXT_IS_NOT_WALL) is replaced by an equivalent
+     * IF_ELSE with the opposite condition and the "then" and "else" BLOCKs
+     * switched. Every other statement is left unmodified.
+     *
+     * @param s
+     *            the {@code Statement}
+     * @updates s
+     * @ensures <pre>
+     * s = [#s refactored so that IF_ELSE statements with "not"
+     *   conditions are simplified so the "not" is removed]
+     * </pre>
+     */
+    public static void simplifyIfElse(Statement s) {
+        switch (s.kind()) {
+            case BLOCK: {
+                /*
+                 * Add up the number of calls to primitive instructions in each
+                 * nested statement in the BLOCK.
+                 */
+                for (int index = 0; index < s.lengthOfBlock(); index++) {
+                    Statement temp = s.removeFromBlock(index);
+                    simplifyIfElse(temp);
+                    s.addToBlock(index, temp);
+                }
+                break;
+            }
+            case IF: {
+                Statement sub = s.newInstance();
+                Condition temp = s.disassembleIf(sub);
+                simplifyIfElse(sub);
+                s.assembleIf(temp, sub);
+
+                break;
+            }
+            case IF_ELSE: {
+                Statement IF = s.newInstance();
+                Statement Else = s.newInstance();
+                Condition ifElse = s.disassembleIfElse(IF, Else);
+                switch (ifElse.name()) {
+                    case "NEXT_IS_NOT_EMPTY": {
+                        ifElse = ifElse.NEXT_IS_EMPTY;
+                        simplifyIfElse(IF);
+                        simplifyIfElse(Else);
+                    }
+                    case "NEXT_IS_NOT_ENEMY": {
+                        ifElse = ifElse.NEXT_IS_ENEMY;
+                        simplifyIfElse(IF);
+                        simplifyIfElse(Else);
+                    }
+                    case "NEXT_IS_NOT_FRIEND": {
+                        ifElse = ifElse.NEXT_IS_FRIEND;
+                        simplifyIfElse(IF);
+                        simplifyIfElse(Else);
+                    }
+                    case "NEXT_IS_NOT_WALL": {
+                        ifElse = ifElse.NEXT_IS_WALL;
+                        simplifyIfElse(IF);
+                        simplifyIfElse(Else);
+                    }
+
+                }
+                s.assembleIfElse(ifElse, IF, Else);
+
+                break;
+            }
+            case WHILE: {
+                /*
+                 * Find the number of calls to primitive instructions in the
+                 * body of the WHILE.
+                 */
+                Statement temp = s.newInstance();
+                Condition While = s.disassembleWhile(temp);
+                simplifyIfElse(temp);
+                s.assembleWhile(While, temp);
+
+                break;
+            }
+            case CALL: {
+                // nothing to do here...can you explain why?
+                break;
+            }
+            default: {
+                // this will never happen...can you explain why?
+                break;
+            }
+        }
+    }
+
+    /**
+     * Returns the largest integer in the given {@code Tree<Integer>}.
+     *
+     * @param t
+     *            the {@code Tree<Integer>} whose largest integer to return
+     * @return the largest integer in the given {@code Tree<Integer>}
+     * @requires |t| > 0
+     * @ensures <pre>
+     * max is in labels(t)  and
+     * for all i: integer where (i is in labels(t)) (i <= max)
+     * </pre>
+     */
+    public static int max(Tree<Integer> t) {
+        int num = t.root();
+        if (t.size() > 0) {
+            Sequence<Tree<Integer>> children = t.newSequenceOfTree();
+            int root = t.disassemble(children);
+            for (Tree<Integer> temp : children) {
+                if (num < max(temp)) {
+                    num = max(temp);
+                }
+            }
+            t.assemble(root, children);
+        }
+        return num;
+    }
+
+    /**
+     * Refactors the given {@code Statement} by renaming every occurrence of
+     * instruction {@code oldName} to {@code newName}. Every other statement is
+     * left unmodified.
+     *
+     * @param s
+     *            the {@code Statement}
+     * @param oldName
+     *            the name of the instruction to be renamed
+     * @param newName
+     *            the new name of the renamed instruction
+     * @updates s
+     * @requires [newName is a valid IDENTIFIER]
+     * @ensures <pre>
+     * s = [#s refactored so that every occurrence of instruction oldName
+     *   is replaced by newName]
+     * </pre>
+     */
+    public static void renameInstruction(Statement s, String oldName,
+            String newName) {
+        switch (s.kind()) {
+            case BLOCK: {
+                /*
+                 * Add up the number of calls to primitive instructions in each
+                 * nested statement in the BLOCK.
+                 */
+                for (int index = 0; index < s.lengthOfBlock(); index++) {
+                    Statement temp = s.removeFromBlock(index);
+                    renameInstruction(temp,oldName,newName);
+                    s.addToBlock(index, temp);
+                }
+                break;
+            }
+            case IF: {
+                Statement sub = s.newInstance();
+                Condition temp = s.disassembleIf(sub);
+                renameInstruction(sub,oldName,newName);
+                s.assembleIf(temp, sub);
+
+                break;
+            }
+            case IF_ELSE: {
+                Statement IF = s.newInstance();
+                Statement Else = s.newInstance();
+                Condition ifElse = s.disassembleIfElse(IF, Else);
+                renameInstruction(IF,oldName,newName);
+                renameInstruction(Else,oldName,newName);
+                s.assembleIfElse(ifElse, IF, Else);
+                break;
+            }
+            case WHILE: {
+                /*
+                 * Find the number of calls to primitive instructions in the
+                 * body of the WHILE.
+                 */
+                Statement temp = s.newInstance();
+                Condition While = s.disassembleWhile(temp);
+                renameInstruction(temp,oldName,newName);
+                s.assembleWhile(While, temp);
+
+                break;
+            }
+            case CALL: {
+                String condition = s.disassembleCall();
+                if(condition.equals(oldName)) {
+                    s.assembleCall(newName);
+                }else {
+                    s.assembleCall(condition);
+                }
+
+            }
+            default: {
+                // this will never happen...can you explain why?
+                break;
+            }
+    }
+
+    /**
+     * Refactors the given {@code Program} by renaming instruction
+     * {@code oldName}, and every call to it, to {@code newName}. Everything
+     * else is left unmodified.
+     * 
+     * @param p
+     *            the {@code Program}
+     * @param oldName
+     *            the name of the instruction to be renamed
+     * @param newName
+     *            the new name of the renamed instruction
+     * @updates p
+     * @requires <pre>
+     * oldName is in DOMAIN(p.context)  and
+     * [newName is a valid IDENTIFIER]  and
+     * newName is not in DOMAIN(p.context)
+     * </pre>
+     * @ensures <pre>
+     * p = [#p refactored so that instruction oldName and every call
+     *   to it are replaced by newName]
+     * </pre>
+     */
+    public static void renameInstruction(Program p, String oldName,
+            String newName) {
+        Map<String, Statement> temp = p.newContext();
+        Statement body = p.newBody();
+        p.replaceBody(body);
+        p.replaceContext(temp);
+        Map<String, Statement> map = temp.newInstance();
+        while (temp.size() > 0) {
+            Map.Pair<String, Statement> pair = temp.removeAny();
+            String name = pair.key();
+            Statement state = pair.value();
+            renameInstruction(state, oldName, newName);
+            if (pair.key().equals(oldName)) {
+                name = newName;
+            }
+            map.add(name, state);
+        }
+        renameInstruction(body, oldName, newName);
+        p.replaceBody(body);
+        p.replaceContext(map);
+    }
+    private static final String SEPARATORS = " \t\n\r";
+    /**
+     * Returns the first "word" (maximal length string of characters not in
+     * {@code SEPARATORS}) or "separator string" (maximal length string of
+     * characters in {@code SEPARATORS}) in the given {@code text} starting at
+     * the given {@code position}.
+     * 
+     * @param text
+     *            the {@code String} from which to get the word or separator
+     *            string
+     * @param position
+     *            the starting index
+     * @return the first word or separator string found in {@code text} starting
+     *         at index {@code position}
+     * @requires 0 <= position < |text|
+     * @ensures <pre>
+     * nextWordOrSeparator =
+     *   text[position, position + |nextWordOrSeparator|)  and
+     * if entries(text[position, position + 1)) intersection entries(SEPARATORS) = {}
+     * then
+     *   entries(nextWordOrSeparator) intersection entries(SEPARATORS) = {}  and
+     *   (position + |nextWordOrSeparator| = |text|  or
+     *    entries(text[position, position + |nextWordOrSeparator| + 1))
+     *      intersection entries(SEPARATORS) /= {})
+     * else
+     *   entries(nextWordOrSeparator) is subset of entries(SEPARATORS)  and
+     *   (position + |nextWordOrSeparator| = |text|  or
+     *    entries(text[position, position + |nextWordOrSeparator| + 1))
+     *      is not subset of entries(SEPARATORS))
+     * </pre>
+     */
+    private static String nextWordOrSeparator(String text, int position) {
+       
+        Set<String> separator = new Set1L<>();
+     
+    
+
+    /**
+     * Prints the given number of spaces to the given output stream.
+     *
+     * @param out
+     *            the output stream
+     * @param numSpaces
+     *            the number of spaces to print
+     * @updates out.content
+     * @requires out.is_open and spaces >= 0
+     * @ensures out.content = #out.content * [numSpaces spaces]
+     */
+    private static void printSpaces(SimpleWriter out, int numSpaces) {
+    }
+
+    /**
+     * Converts c into the corresponding BL condition.
+     *
+     * @param c
+     *            the Condition to convert
+     * @return the BL condition corresponding to c
+     * @ensures toStringCondition = [BL condition corresponding to c]
+     */
+    private static String toStringCondition(Condition c) {
+        return null;
+    }
+
+    public static void main(String[] args) {
+        BinaryTree<Integer> tree = new BinaryTree1<>();
+        BinaryTree<Integer> two = new BinaryTree1<>();
+        BinaryTree<Integer> five = new BinaryTree1<>();
+        tree.assemble(4, two, five);
+        System.out.println(size(tree));
+    }
+
+}

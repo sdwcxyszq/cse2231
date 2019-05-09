@@ -1,0 +1,128 @@
+
+import java.util.Comparator;
+
+import components.queue.Queue;
+import components.sequence.Sequence;
+import components.sequence.Sequence1L;
+
+/**
+ * Simple HelloWorld program (clear of Checkstyle and FindBugs warnings).
+ *
+ * @author P. Bucci
+ */
+public final class Practice {
+
+    /**
+     * Default constructor--private to prevent instantiation.
+     */
+    private Practice() {
+        // no code needed here
+    }
+
+    /**
+     * Inserts the given {@code T} in the {@code Queue<T>} sorted according to
+     * the given {@code Comparator<T>} and maintains the {@code Queue<T>}
+     * sorted.
+     *
+     * @param <T>
+     *            type of {@code Queue} entries
+     * @param q
+     *            the {@code Queue} to insert into
+     * @param x
+     *            the {@code T} to insert
+     * @param order
+     *            the {@code Comparator} defining the order for {@code T}
+     * @updates q
+     * @requires <pre>
+     * IS_TOTAL_PREORDER([relation computed by order.compare method])  and
+     * IS_SORTED(q, [relation computed by order.compare method])
+     * </pre>
+     * @ensures <pre>
+     * perms(q, #q * <x>)  and
+     * IS_SORTED(q, [relation computed by order.compare method])
+     * </pre>
+     */
+    private static <T> void insertInOrder(Queue<T> q, T x,
+            Comparator<T> order) {
+        Queue<T> temp = q.newInstance();
+        while(q.length()>0&&order.compare(x,q.front())>0)) {
+            T element = q.dequeue();
+            temp.enqueue(element);
+        }
+        temp.enqueue(x);
+        temp.append(q);
+        q.transferFrom(q);
+    }
+
+    /**
+     * Sorts {@code this} according to the ordering provided by the
+     * {@code compare} method from {@code order}.
+     *
+     * @param order
+     *            ordering by which to sort
+     * @updates this
+     * @requires IS_TOTAL_PREORDER([relation computed by order.compare method])
+     * @ensures <pre>
+     * perms(this, #this)  and
+     * IS_SORTED(this, [relation computed by order.compare method])
+     * </pre>
+     */
+    public void sort(Comparator<T> order) {...}
+
+    /**
+     * Smooths a given {@code Sequence<Integer>}.
+     *
+     * @param s1
+     *            the sequence to smooth
+     * @requires |s1| >= 1
+     * @ensures <pre>
+     * |this| = |s1| - 1  and
+     *  for all i, j: integer, a, b: string of integer
+     *      where (s1 = a * <i> * <j> * b)
+     *    (there exists c, d: string of integer
+     *       (|c| = |a|  and
+     *        this = c * <(i+j)/2> * d))
+     * </pre>
+     */
+    public static Sequence<Integer> smooth2(Sequence<Integer> s1) {
+        assert s1 != null : "Violation of: s1 is not null";
+        assert s1.length() >= 1 : "|s1| >= 1";
+        Sequence<Integer> temp = new Sequence1L<Integer>();
+        for (int index = 0; index < s1.length() - 1; index++) {
+            int num1 = s1.entry(index);
+            int num2 = s1.entry(index + 1);
+            temp.add(temp.length(), (num1 + num2) / 2);
+        }
+        return temp;
+
+    }
+
+    /**
+     * Returns the integer average of two given {@code int}s.
+     *
+     * @param j
+     *            the first of two integers to average
+     * @param k
+     *            the second of two integers to average
+     * @return the integer average of j and k
+     * @ensures average = (j+k)/2
+     */
+    public static int average(int j, int k) {
+        int total = 0;
+        if (j % 2 != 0 && k % 2 != 0) {
+            if (j > 0 && k < 0) {
+                total = j / 2 + k / 2;
+            } else if (j < 0 && k > 0) {
+                total = j / 2 + k / 2;
+            } else if (j > 0 && k > 0) {
+                total = j / 2 + k / 2 + 1;
+            } else {
+                total = j / 2 + k / 2 - 1;
+            }
+        } else {
+            total = j / 2 + k / 2;
+        }
+        return total;
+    }
+
+}

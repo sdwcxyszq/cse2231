@@ -1,0 +1,113 @@
+import components.sequence.Sequence;
+import components.sequence.Sequence1L;
+
+/**
+ * Simple HelloWorld program (clear of Checkstyle and FindBugs warnings).
+ *
+ * @author P. Bucci
+ */
+public final class HelloWorld {
+
+    /**
+     * Default constructor--private to prevent instantiation.
+     */
+    private HelloWorld() {
+        // no code needed here
+    }
+
+    /**
+     * Smooths a given {@code Sequence<Integer>}.
+     *
+     * @param s1
+     *            the sequence to smooth
+     * @requires |s1| >= 1
+     * @ensures <pre>
+     * |this| = |s1| - 1  and
+     *  for all i, j: integer, a, b: string of integer
+     *      where (s1 = a * <i> * <j> * b)
+     *    (there exists c, d: string of integer
+     *       (|c| = |a|  and
+     *        this = c * <(i+j)/2> * d))
+     * </pre>
+     */
+    public static Sequence<Integer> smooth(Sequence<Integer> s1) {
+        assert s1 != null : "Violation of: s1 is not null";
+        assert s1.length() >= 1 : "|s1| >= 1";
+        Sequence<Integer> temp = new Sequence1L<Integer>();
+        if (s1.length() > 1) {
+            int num1 = s1.entry(0);
+            int num2 = s1.entry(1);
+            s1.remove(0);
+            temp.add(temp.length(), (num1 + num2) / 2);
+            temp.append(smooth(s1));
+            s1.add(0, num1);
+        }
+        return temp;
+
+    }
+
+    /**
+     * Smooths a given {@code Sequence<Integer>}.
+     *
+     * @param s1
+     *            the sequence to smooth
+     * @requires |s1| >= 1
+     * @ensures <pre>
+     * |this| = |s1| - 1  and
+     *  for all i, j: integer, a, b: string of integer
+     *      where (s1 = a * <i> * <j> * b)
+     *    (there exists c, d: string of integer
+     *       (|c| = |a|  and
+     *        this = c * <(i+j)/2> * d))
+     * </pre>
+     */
+    public static Sequence<Integer> smooth2(Sequence<Integer> s1) {
+        assert s1 != null : "Violation of: s1 is not null";
+        assert s1.length() >= 1 : "|s1| >= 1";
+        Sequence<Integer> temp = new Sequence1L<Integer>();
+        for (int index = 0; index < s1.length() - 1; index++) {
+            int num1 = s1.entry(index);
+            int num2 = s1.entry(index + 1);
+            temp.add(temp.length(), (num1 + num2) / 2);
+        }
+        return temp;
+
+    }
+
+    /**
+     * Computes {@code a} mod {@code b} as % should have been defined to work.
+     *
+     * @param a
+     *            the number being reduced
+     * @param b
+     *            the modulus
+     * @return the result of a mod b, which satisfies 0 <= {@code mod} < b
+     * @requires b > 0
+     * @ensures <pre>
+     * 0 <= mod  and  mod < b  and
+     * there exists k: integer (a = k * b + mod)
+     * </pre>
+     */
+    public static int mod(int a, int b) {
+        int num = 0;
+        if (a >= 0) {
+            num = a % b;
+        } else {
+            if (a % b != 0) {
+                num = a % b + b;
+            }
+        }
+        return num;
+    }
+
+    public static int hashcode(int num) {
+        int total = 0;
+        while (num > 0) {
+            int divide = num % 10;
+            num /= 10;
+            total += divide;
+        }
+        return total % 10;
+    }
+
+}

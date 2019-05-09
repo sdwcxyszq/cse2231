@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename compilation unit &apos;WaitingLine.java&apos; to &apos;WaitingLineKernel.java&apos;&#x0D;&#x0A;- Original project: &apos;practice&apos;&#x0D;&#x0A;- Original element: &apos;WaitingLine.java&apos;&#x0D;&#x0A;- Renamed element: &apos;WaitingLineKernel.java&apos;" description="Rename compilation unit &apos;WaitingLine.java&apos;" flags="2" id="org.eclipse.jdt.ui.rename.compilationunit" input="/src&lt;{WaitingLine.java" name="WaitingLineKernel.java" references="false" stamp="1554346341077" version="1.0"/>
+</session>

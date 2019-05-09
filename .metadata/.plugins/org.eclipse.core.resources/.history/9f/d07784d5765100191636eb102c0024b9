@@ -1,0 +1,407 @@
+
+import java.util.Comparator;
+
+import components.queue.Queue;
+import components.sequence.Sequence;
+import components.sequence.Sequence1L;
+
+/**
+ * Simple HelloWorld program (clear of Checkstyle and FindBugs warnings).
+ *
+ * @author P. Bucci
+ */
+public final class Practice {
+
+    /**
+     * Default constructor--private to prevent instantiation.
+     */
+    private Practice() {
+        // no code needed here
+    }
+
+    /**
+     * Inserts the given {@code T} in the {@code Queue<T>} sorted according to
+     * the given {@code Comparator<T>} and maintains the {@code Queue<T>}
+     * sorted.
+     *
+     * @param <T>
+     *            type of {@code Queue} entries
+     * @param q
+     *            the {@code Queue} to insert into
+     * @param x
+     *            the {@code T} to insert
+     * @param order
+     *            the {@code Comparator} defining the order for {@code T}
+     * @updates q
+     * @requires <pre>
+     * IS_TOTAL_PREORDER([relation computed by order.compare method])  and
+     * IS_SORTED(q, [relation computed by order.compare method])
+     * </pre>
+     * @ensures <pre>
+     * perms(q, #q * <x>)  and
+     * IS_SORTED(q, [relation computed by order.compare method])
+     * </pre>
+     */
+    private static <T> void insertInOrder(Queue<T> q, T x,
+            Comparator<T> order) {
+        Queue<T> temp = q.newInstance();
+        while(q.length()>0&&order.compare(x,q.front())>0)) {
+            T element = q.dequeue();
+            temp.enqueue(element);
+        }
+        temp.enqueue(x);
+        temp.append(q);
+        q.transferFrom(q);
+    }
+
+    /**
+     * Sorts {@code this} according to the ordering provided by the
+     * {@code compare} method from {@code order}.
+     *
+     * @param order
+     *            ordering by which to sort
+     * @updates this
+     * @requires IS_TOTAL_PREORDER([relation computed by order.compare method])
+     * @ensures <pre>
+     * perms(this, #this)  and
+     * IS_SORTED(this, [relation computed by order.compare method])
+     * </pre>
+     */
+    public void sort(Comparator<T> order) {...}
+
+    /**
+     * Evaluates an expression and returns its value.
+     *
+     * @param source
+     *            the {@code StringBuilder} that starts with an expr string
+     * @return value of the expression
+     * @updates source
+     * @requires <pre>
+     * [an expr string is a proper prefix of source, and the longest
+     * such, s, concatenated with the character following s, is not a prefix
+     * of any expr string]
+     * </pre>
+     * @ensures <pre>
+     * valueOfExpr =
+     *   [value of longest expr string at start of #source]  and
+     * #source = [longest expr string at start of #source] * source
+     * </pre>
+     */
+    public static int valueOfExpr(StringBuilder source) {
+        int value = valueOfTerm(source);
+        while (source.charAt(0) == '+' || source.charAt(0) == '-') {
+            char op = source.charAt(0);
+            StringBuilder first = source.deleteCharAt(0);
+            int nextTerm = valueOfTerm(source);
+            if (op == '+') {
+                value = value + nextTerm;
+            } else {
+                value = value - nextTerm;
+            }
+        }
+        return value;
+    }
+
+    /**
+     * Returns the location of the next primitive instruction to execute in
+     * compiled program {@code cp} given what the bug sees {@code wbs} and
+     * starting from location {@code pc}.
+     * 
+     * @param cp
+     *            the compiled program
+     * @param wbs
+     *            the {@code CellState} indicating what the bug sees
+     * @param pc
+     *            the program counter
+     * @return the location of the next primitive instruction to execute
+     * @requires <pre>
+     * [cp is a valid compiled BL program]  and
+     * 0 <= pc < cp.length  and
+     * [pc is the location of an instruction byte code in cp, that is, pc
+     *  cannot be the location of an address]
+     * </pre>
+     * @ensures <pre>
+     * [return the address of the next primitive instruction that
+     *  should be executed in program cp given what the bug sees wbs and
+     *  starting execution at address pc in program cp]
+     * </pre>
+     */
+    public static int nextPrimitiveInstructionAddress(int[] cp, CellState wbs,
+            int pc) {
+        int value=0;
+        pc++;
+        while(pc<cp.length) {
+            if(isPrimitiveInstructionByteCode(cp[pc])) {
+                value=pc;
+                break;
+            }
+            pc++;
+        }
+        return value;
+    }
+    /**
+     * BugsWorld possible cell states.
+     */
+    enum CellState {
+        EMPTY, WALL, FRIEND, ENEMY;
+    }
+     
+    /**
+     * Returns whether the given integer is the byte code of a BugsWorld virtual
+     * machine primitive instruction (MOVE, TURNLEFT, TURNRIGHT, INFECT, SKIP,
+     * HALT).
+     * 
+     * @param byteCode
+     *            the integer to be checked
+     * @return true if {@code byteCode} is the byte code of a primitive
+     *         instruction or false otherwise
+     * @ensures <pre>
+     * isPrimitiveInstructionByteCode =
+     *  [true iff byteCode is the byte code of a primitive instruction]
+     * </pre>
+     */
+    private static boolean isPrimitiveInstructionByteCode(int byteCode) {...}
+     
+    /**
+     * Returns the value of the condition in the given conditional jump
+     * {@code condJump} given what the bug sees {@code wbs}. Note that if
+     * {@code condJump} is the byte code for the conditional jump
+     * JUMP_IF_NOT_condition, the value returned is the value of the "condition"
+     * part of the jump instruction.
+     * 
+     * @param wbs
+     *            the {@code CellState} indicating what the bug sees
+     * @param condJump
+     *            the byte code of a conditional jump
+     * @return the value of the conditional jump condition
+     * @requires [condJump is the byte code of a conditional jump]
+     * @ensures <pre>
+     * conditionalJumpCondition =
+     *  [the value of the condition of condJump given what the bug sees wbs]
+     * </pre>
+     */
+    private static boolean conditionalJumpCondition(CellState wbs, int condJump) {...}
+
+    /**1
+     * Evaluates a term and returns its value.
+     *
+     * @param source
+     *            the {@code StringBuilder} that starts with a term string
+     * @return value of the term
+     * @updates source
+     * @requires <pre>
+     * [a term string is a proper prefix of source, and the longest
+     * such, s, concatenated with the character following s, is not a prefix
+     * of any term string]
+     * </pre>
+     * @ensures <pre>
+     * valueOfTerm =
+     *   [value of longest term string at start of #source]  and
+     * #source = [longest term string at start of #source] * source
+     * </pre>
+     */
+    private static int valueOfTerm(StringBuilder source) {
+        int value = 0;
+        char first = source.charAt(0);
+        if (Character.isDigit(first) && source.length() > 1) {
+            value = value * 10 + valueOfTerm(source);
+            source.deleteCharAt(first);
+        } else if (Character.isDigit(first) && source.length() == 1) {
+            String word = "" + source.charAt(0);
+            source.deleteCharAt(0);
+            value = value * 10 + Integer.parseInt(word);
+        }
+        return value;
+    }
+
+    /**
+     * Evaluates a factor and returns its value.
+     *
+     * @param source
+     *            the {@code StringBuilder} that starts with a factor string
+     * @return value of the factor
+     * @updates source
+     * @requires <pre>
+     * [a factor string is a proper prefix of source, and the longest
+     * such, s, concatenated with the character following s, is not a prefix
+     * of any factor string]
+     * </pre>
+     * @ensures <pre>
+     * valueOfFactor =
+     *   [value of longest factor string at start of #source]  and
+     * #source = [longest factor string at start of #source] * source
+     * </pre>
+     */
+    private static int valueOfFactor(StringBuilder source) {
+        int value;
+        if (source.charAt(0) == '(') {
+            source.deleteCharAt(0);
+            value = valueOfExpr(source);
+            source.deleteCharAt(0);
+        } else {
+            String number = "" + source.charAt(0);
+            source.deleteCharAt(0);
+            value = Integer.parseInt(number);
+        }
+        return value;
+    }
+
+    /**
+     * Evaluates a digit sequence and returns its value.
+     *
+     * @param source
+     *            the {@code StringBuilder} that starts with a digit-seq string
+     * @return value of the digit sequence
+     * @updates source
+     * @requires <pre>
+     * [a digit-seq string is a proper prefix of source, which
+     * contains a character that is not a digit]
+     * </pre>
+     * @ensures <pre>
+     * valueOfDigitSeq =
+     *   [value of longest digit-seq string at start of #source]  and
+     * #source = [longest digit-seq string at start of #source] * source
+     * </pre>
+     */
+    private static int valueOfDigitSeq(StringBuilder source) {
+        int total = 0;
+        while (source.length() > 0) {
+            char letter = source.charAt(0);
+            StringBuilder num = new StringBuilder();
+            num.append(letter);
+            total += valueOfDigit(num);
+        }
+        return total;
+    }
+
+    /**
+     * Evaluates a digit and returns its value.
+     *
+     * @param source
+     *            the {@code StringBuilder} that starts with a digit
+     * @return value of the digit
+     * @updates source
+     * @requires 1 < |source| and [the first character of source is a digit]
+     * @ensures <pre>
+     * valueOfDigit = [value of the digit at the start of #source]  and
+     * #source = [digit string at start of #source] * source
+     * </pre>
+     */
+    private static int valueOfDigit(StringBuilder source) {
+        String num = "" + source.charAt(0);
+        return Integer.parseInt(num);
+    }
+
+    /**
+     * Smooths a given {@code Sequence<Integer>}.
+     *
+     * @param s1
+     *            the sequence to smooth
+     * @requires |s1| >= 1
+     * @ensures <pre>
+     * |this| = |s1| - 1  and
+     *  for all i, j: integer, a, b: string of integer
+     *      where (s1 = a * <i> * <j> * b)
+     *    (there exists c, d: string of integer
+     *       (|c| = |a|  and
+     *        this = c * <(i+j)/2> * d))
+     * </pre>
+     */
+    public static Sequence<Integer> smooth2(Sequence<Integer> s1) {
+        assert s1 != null : "Violation of: s1 is not null";
+        assert s1.length() >= 1 : "|s1| >= 1";
+        Sequence<Integer> temp = new Sequence1L<Integer>();
+        for (int index = 0; index < s1.length() - 1; index++) {
+            int num1 = s1.entry(index);
+            int num2 = s1.entry(index + 1);
+            temp.add(temp.length(), (num1 + num2) / 2);
+        }
+        return temp;
+
+    }
+
+    /**
+     * Partitions {@code q} into two parts: entries no larger than
+     * {@code partitioner} are put in {@code front}, and the rest are put in
+     * {@code back}.
+     *
+     * @param <T>
+     *            type of {@code Queue} entries
+     * @param q
+     *            the {@code Queue} to be partitioned
+     * @param partitioner
+     *            the partitioning value
+     * @param front
+     *            upon return, the entries no larger than {@code partitioner}
+     * @param back
+     *            upon return, the entries larger than {@code partitioner}
+     * @param order
+     *            ordering by which to separate entries
+     * @clears q
+     * @replaces front, back
+     * @requires IS_TOTAL_PREORDER([relation computed by order.compare method])
+     * @ensures <pre>
+     * perms(#q, front * back)  and
+     * for all x: T where (<x> is substring of front)
+     *  ([relation computed by order.compare method](x, partitioner))  and
+     * for all x: T where (<x> is substring of back)
+     *  (not [relation computed by order.compare method](x, partitioner))
+     * </pre>
+     */
+    private static <T> void partition(Queue<T> q, T partitioner, Queue<T> front,
+            Queue<T> back, Comparator<T> order) {
+        while (q.length() != 0) {
+            T element = q.dequeue();
+            if (order.compare(element, partitioner) <= 0) {
+                front.enqueue(element);
+            } else {
+                back.enqueue(element);
+            }
+        }
+    }
+
+    /**
+     * Sorts {@code this} according to the ordering provided by the
+     * {@code compare} method from {@code order}.
+     *
+     * @param order
+     *            ordering by which to sort
+     * @updates this
+     * @requires IS_TOTAL_PREORDER([relation computed by order.compare method])
+     * @ensures <pre>
+     * perms(this, #this)  and
+     * IS_SORTED(this, [relation computed by order.compare method])
+     * </pre>
+     */
+    public void sort(Comparator<T> order) {
+        if (this.length() > 1) {
+            Queue<T> front = this.newInstance();
+            Queue<T> back = this.newInstance();
+            /*
+             * Dequeue the partitioning entry from this
+             */
+            T partitioner = this.dequeue();
+            /*
+             * Partition this into two queues as discussed above (you will need
+             * to declare and initialize two new queues)
+             */
+            partition(this, partitioner, front, back, order);
+
+            /*
+             * Recursively sort the two queues
+             */
+            front.sort(order);
+            back.sort(order);
+
+            /*
+             * Reconstruct this by combining the two sorted queues and the
+             * partitioning entry in the proper order
+             */
+            this.append(front);
+            this.enqueue(partitioner);
+            this.append(back);
+
+        }
+    }
+
+}

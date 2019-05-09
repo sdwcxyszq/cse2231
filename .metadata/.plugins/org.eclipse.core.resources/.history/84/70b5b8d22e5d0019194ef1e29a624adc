@@ -1,0 +1,373 @@
+import java.util.Comparator;
+
+import components.map.Map;
+import components.map.Map.Pair;
+import components.map.Map1L;
+import components.queue.Queue;
+import components.queue.Queue1L;
+import components.set.Set;
+import components.set.Set1L;
+import components.simplereader.SimpleReader;
+import components.simplereader.SimpleReader1L;
+import components.simplewriter.SimpleWriter;
+import components.simplewriter.SimpleWriter1L;
+import components.sortingmachine.SortingMachine;
+import components.sortingmachine.SortingMachine1L;
+import components.utilities.Reporter;
+
+/**
+ * Put a short phrase describing the program here.
+ *
+ * @author Put your name here
+ *
+ */
+public final class TagCloudGenerator {
+
+    /**
+     * Private constructor so this utility class cannot be instantiated.
+     */
+    private TagCloudGenerator() {
+    }
+
+    private static class MapPairTL
+            implements Comparator<Map.Pair<String, Integer>> {
+        @Override
+        public int compare(Map.Pair<String, Integer> o1,
+                Map.Pair<String, Integer> o2) {
+            return o2.value().compareTo(o1.value());
+        }
+
+    }
+
+    private static class StringAB implements Comparator<String> {
+        @Override
+        public int compare(String o1, String o2) {
+            return o1.compareTo(o2);
+        }
+    }
+
+    /**
+     * Generates a set of separator characters from a given char array.
+     *
+     * @param separators
+     *            the {@code Set} of separator characters
+     * @param sepArray
+     *            The char array of separator characters
+     */
+    private static void generateSet(Set<Character> separators,
+            char[] sepArray) {
+        int i = 0;
+        while (sepArray.length > i) {
+            separators.add(sepArray[i]);
+            i++;
+        }
+    }
+
+    /**
+     * Record the word from the input file and the number of times it appear by
+     * map.
+     *
+     * @param record
+     *            The map used to record the word and the number of times it
+     *            appear
+     * @param input
+     *            The simplereader which reader the input file
+     * @param separator
+     *            The set that contains space, comma and period
+     * @param wordList
+     *            The sequence which records all the words in the input file
+     */
+    public static void wordRecording(Map<String, Integer> record,
+            SimpleReader input, Set<Character> separator) {
+        while (!input.atEOS()) {
+            String line = input.nextLine();
+            int position = 0;
+            while (position < line.length()) {
+                String word = nextWordOrSeparator(line, position, separator);
+                word = wordLowerCase(word);
+                if (!separator.contains(word.charAt(0))) {
+                    if (!record.hasKey(word)) {
+                        record.add(word, 1);
+                    } else {
+                        Map.Pair<String, Integer> pair = record.remove(word);
+                        record.add(pair.key(), pair.value() + 1);
+                    }
+                }
+                position += word.length();
+            }
+        }
+    }
+
+    /**
+     * Record the max number of counts for the map.
+     *
+     * @param map
+     *            The map with the recording of the words and the count
+     * @return The highest count in the map
+     */
+    public static int maxValue(Map<String, Integer> map) {
+        assert map.size() > 0 : "";
+        int max = 0;
+        for (Map.Pair<String, Integer> pair : map) {
+            int testValue = pair.value();
+            if (testValue > max) {
+                max = testValue;
+            }
+        }
+        return max;
+    }
+
+    /**
+     * Record the main number of counts for the map.
+     *
+     * @param map
+     *            The map with the recording of the words and the count
+     * @return The lowest count in the map
+     */
+    private static int minValue(Map<String, Integer> map) {
+        assert map.size() > 0 : "";
+        int min = Integer.MAX_VALUE;
+        for (Map.Pair<String, Integer> pair : map) {
+            int testValue = pair.value();
+            if (testValue < min) {
+                min = testValue;
+            }
+        }
+        return min;
+    }
+
+    private static Map<String, Integer> processMapCounts(
+            Map<String, Integer> map, int num) {
+
+        Map<String, Integer> topHundred = map.newInstance();
+        Comparator<Map.Pair<String, Integer>> ci = new MapPairTL();
+        SortingMachine<Pair<String, Integer>> si = new SortingMachine1L<>(ci);
+
+        for (Map.Pair<String, Integer> pair : map) {
+            si.add(pair);
+        }
+        si.changeToExtractionMode();
+        while (si.size() > 0 && topHundred.size() < num) {
+            Map.Pair<String, Integer> x = si.removeFirst();
+            System.out.println(x.key() + "  " + x.value());
+            topHundred.add(x.key(), x.value());
+        }
+
+        return topHundred;
+    }
+
+    private static Map<String, Integer> processQueueAlphabet(
+            Map<String, Integer> topHundred) {
+
+        Map<String, Integer> finalMap = topHundred.newInstance();
+        Comparator<String> cs = new StringAB();
+        SortingMachine<String> ss = new SortingMachine1L<>(cs);
+
+        for (Map.Pair<String, Integer> pair : topHundred) {
+            ss.add(pair.key());
+        }
+        ss.changeToExtractionMode();
+        while (ss.size() > 0 && topHundred.size() < 100) {
+            String x = ss.removeFirst();
+            for (Map.Pair<String, Integer> pair : topHundred) {
+                if (pair.key().equals(x)) {
+                    finalMap.add(pair.key(), pair.value());
+                }
+            }
+        }
+        return finalMap;
+    }
+
+    /**
+     * Put all the word in lower case.
+     *
+     * @param word
+     *            The word we want to transfer it into lower case
+     * @return The word with all letters lower-cased
+     */
+    private static String wordLowerCase(String word) {
+        String lowerCase = "";
+        if (word.length() > 0) {
+            char letter = Character.toLowerCase(word.charAt(0));
+            String substr = word.substring(1, word.length());
+            lowerCase += letter;
+            lowerCase += wordLowerCase(substr);
+        }
+        return lowerCase;
+    }
+
+    /**
+     * Returns the first "word" (maximal length string of characters not in
+     * {@code separators}) or "separator string" (maximal length string of
+     * characters in {@code separators}) in the given {@code text} starting at
+     * the given {@code position}.
+     *
+     * @param text
+     *            the {@code String} from which to get the word or separator
+     *            string
+     * @param position
+     *            the starting index
+     * @param separators
+     *            the {@code Set} of separator characters
+     * @return the first word or separator string found in {@code text} starting
+     *         at index {@code position}
+     * @requires <pre>
+     * {@code 0 <= position < |text|}
+     * </pre>
+     * @ensures <pre>
+     * {@code nextWordOrSeparator =
+     *   text[ position .. position + |nextWordOrSeparator| )  and
+     * if elements(text[ position .. position + 1 )) intersection separators = {}
+     * then
+     *   elements(nextWordOrSeparator) intersection separators = {}  and
+     *   (position + |nextWordOrSeparator| = |text|  or
+     *    elements(text[ position .. position + |nextWordOrSeparator| + 1 ))
+     *      intersection separators /= {})
+     * else
+     *   elements(nextWordOrSeparator) is subset of separators  and
+     *   (position + |nextWordOrSeparator| = |text|  or
+     *    elements(text[ position .. position + |nextWordOrSeparator| + 1 ))
+     *      is not subset of separators)}
+     * </pre>
+     */
+    private static String nextWordOrSeparator(String text, int position,
+            Set<Character> separators) {
+        String total = "";
+        char letter = text.charAt(position);
+        total += letter;
+        boolean judge = separators.contains(letter);
+        while (position < text.length() - 1) {
+            boolean nextJudge = separators.contains(text.charAt(position + 1));
+            if (judge == nextJudge) {
+                total += text.charAt(position + 1);
+            } else {
+                break;
+            }
+            position++;
+        }
+        return total;
+    }
+
+    /**
+     * Output a wordlist for the key of the map
+     *
+     * @param
+     */
+    private static Queue<String> queueOutput(Map<String, Integer> map) {
+        Queue<String> queue = new Queue1L<>();
+        for (Map.Pair<String, Integer> pair : map) {
+            queue.enqueue(pair.key());
+        }
+        return queue;
+    }
+
+    /**
+     * Output the final html file
+     */
+    private static void htmlOutput(SimpleWriter out, int numOfWords,
+            String folder, Map<String, Integer> map, Queue<String> wordlist,
+            int minCount, int maxCount) {
+        out.println("<html>");
+        out.println("<head>");
+        out.println("<title>Top " + numOfWords + " words in " + folder
+                + "</title>");
+        out.println(
+                "<link href=\"http://web.cse.ohio-state.edu/software/2231/we"
+                        + "b-sw2/assignments/projects/tag-cloud-gen"
+                        + "erator/data/tagcloud.css\" rel=\"stylesheet\" "
+                        + "type=\"text/css\">");
+        out.println("</head>");
+        out.println("<body>");
+        out.println("<h2>Top " + numOfWords + " words in " + folder + "</h2>");
+        out.println("<hr>");
+        out.println("<div class=" + '"' + "cdiv" + '"' + ">");
+        out.println("<p class=" + '"' + "cbox" + '"' + ">");
+        while (wordlist.length() > 0) {
+            String word = wordlist.dequeue();
+            int font = (int) ((double) map.value(word) / maxCount * 37 + 11);
+            out.println("<span style=" + '"' + "cursor:default" + '"' + "class="
+                    + '"' + "f" + font + '"' + " title=" + '"' + "count: "
+                    + map.value(word) + '"' + ">" + word + "</span>");
+        }
+        out.println("</p>");
+        out.println("</div>");
+        out.println("</body>");
+        out.println("</html>");
+    }
+
+    /**
+     * Main method.
+     *
+     * @param args
+     *            the command line arguments
+     */
+    public static void main(String[] args) {
+        SimpleReader in = new SimpleReader1L();
+        SimpleWriter out = new SimpleWriter1L();
+
+        /*
+         * Makes a set of separator characters to be used by the program.
+         */
+
+        Set<Character> separators = new Set1L<>();
+        char[] separatorsArray = { ' ', '\t', '\n', '\r', ',', '-', '.', '!',
+                '?', '[', ']', '\'', ';', ':', '/', '(', ')' };
+        generateSet(separators, separatorsArray);
+
+        /*
+         * This map will hold each unique word, and the number of times that
+         * word appears in the given .txt file.
+         */
+
+        Map<String, Integer> wordData = new Map1L<>();
+
+        /*
+         * Reads in the text file to use as the input.
+         */
+
+        out.println("Enter The Location & Name of Input File: ");
+        String inputName = in.nextLine();
+        SimpleReader fileIn = new SimpleReader1L();
+        if (!inputName.isEmpty()) {
+            fileIn = new SimpleReader1L(inputName);
+        } else {
+            Reporter.fatalErrorToConsole(
+                    "Error: Expected [A location/file string], found: "
+                            + inputName);
+        }
+
+        /*
+         * Reads in the name of the output folder
+         */
+
+        out.println("Enter The Location & Name of Output File: ");
+        String folder = in.nextLine();
+
+        /*
+         * Reads in the # of tags to generate
+         */
+        out.println("Enter The Number of Tags to Generate: ");
+        int n = in.nextInteger();
+        /*
+         * Record all of the words inside the map
+         */
+        wordRecording(wordData, fileIn, separators);
+        /*
+         * Process a topList for the tag
+         */
+        Map<String, Integer> topData = processMapCounts(wordData, n);
+        //Get the wordList for the topList
+        Queue<String> wordList = queueOutput(topData);
+        //Sort the wordList in alphabetical order
+        Comparator alphabetical = new StringAB();
+        wordList.sort(alphabetical);
+        //Get the maxValue and min Value of the counts
+        int maxCount = maxValue(topData);
+        int minCount = minValue(topData);
+        //Output the html
+        SimpleWriter output = new SimpleWriter1L(folder);
+        htmlOutput(output, n, folder, topData, wordList, maxCount, minCount);
+
+    }
+
+}

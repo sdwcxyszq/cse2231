@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="components.naturalnumber.NaturalNumber"/>
+    <fullyQualifiedTypeName name="components.naturalnumber.NaturalNumber1L"/>
+    <fullyQualifiedTypeName name="components.binarytree.BinaryTree"/>
+    <fullyQualifiedTypeName name="components.binarytree.BinaryTree1"/>
+    <fullyQualifiedTypeName name="java.util.Comparator"/>
+    <fullyQualifiedTypeName name="components.tree.Tree"/>
+    <fullyQualifiedTypeName name="java.lang.String"/>
+    <fullyQualifiedTypeName name="components.simplewriter.SimpleWriter"/>
+    <fullyQualifiedTypeName name="components.program.Program"/>
+    <fullyQualifiedTypeName name="components.map.Map"/>
+    <fullyQualifiedTypeName name="components.statement.Statement"/>
+    <fullyQualifiedTypeName name="components.program.Program.Instruction"/>
+    <fullyQualifiedTypeName name="components.statement.StatementKernel.Condition"/>
+    <fullyQualifiedTypeName name="java.util.Iterator"/>
+    <fullyQualifiedTypeName name="components.queue.Queue"/>
+    <fullyQualifiedTypeName name="components.queue.Queue1L"/>
+    <fullyQualifiedTypeName name="components.map.Map.Pair"/>
+    <fullyQualifiedTypeName name="components.simplereader.SimpleReader1L"/>
+    <fullyQualifiedTypeName name="java.util.HashSet"/>
+    <fullyQualifiedTypeName name="java.util.Scanner"/>
+    <fullyQualifiedTypeName name="java.io.BufferedReader"/>
+    <fullyQualifiedTypeName name="java.io.FileReader"/>
+    <fullyQualifiedTypeName name="java.io.IOException"/>
+    <fullyQualifiedTypeName name="java.lang.Integer"/>
+    <fullyQualifiedTypeName name="java.util.HashMap"/>
+    <fullyQualifiedTypeName name="java.util.Map"/>
+    <fullyQualifiedTypeName name="java.util.ArrayList"/>
+    <fullyQualifiedTypeName name="java.util.List"/>
+    <fullyQualifiedTypeName name="java.util.Set"/>
+    <fullyQualifiedTypeName name="java.util.LinkedList"/>
+    <fullyQualifiedTypeName name="java.util.Map.Entry"/>
+    <fullyQualifiedTypeName name="java.util.Queue"/>
+    <fullyQualifiedTypeName name="java.util.PriorityQueue"/>
+</qualifiedTypeNameHistroy>
